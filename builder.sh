@@ -25,10 +25,11 @@ _create_appimage(){
 		wget "$DL" || exit 1
 	fi
 	export arch="$a"
-	curl -Ls "https://raw.githubusercontent.com/ivan-hc/portable2appimage/refs/heads/main/portable2appimage" | sh -s -- ./*.apk busybox.static "$VERSION" "ivan-hc|Busybox-appimage|latest" || exit 1
+	curl -Ls "https://raw.githubusercontent.com/ivan-hc/portable2appimage/refs/heads/main/portable2appimage" | sh -s -- ./*.apk busybox.static "$VERSION" || exit 1
 }
 
 ARCHITECTURES="i686 x86_64 aarch64"
+export UPINFO="$GITHUB_REPOSITORY_OWNER|Busybox-appimage|latest"
 for a in $ARCHITECTURES; do
 	if [ "$a" = i686 ]; then
 		ARCH_REF="x86"

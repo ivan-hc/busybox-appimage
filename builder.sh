@@ -46,3 +46,8 @@ done
 
 cd ..
 mv ./tmp/*.AppImage* ./
+
+# Create artifacts for direct links
+for a in $ARCHITECTURES; do
+	cp ./*"$a"*.AppImage ./"$APP-$a"
+done

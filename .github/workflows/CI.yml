@@ -25,7 +25,7 @@ jobs:
         mkdir dist
         mv *AppImage* dist/
 
-        mv busybox.static-* dist/
+        mv *busybox-*-static dist/
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4.4.0
@@ -72,5 +72,5 @@ jobs:
             draft: false
             files: |
               *.AppImage*
-              busybox.static-*
+              busybox-*-static
             repo_token: ${{ secrets.GITHUB_TOKEN }}

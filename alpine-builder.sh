@@ -51,3 +51,5 @@ done
 
 cd ..
 mv ./tmp/*.AppImage* ./
+mv ./tmp/busybox-*-static ./
+

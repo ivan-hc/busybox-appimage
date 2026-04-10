@@ -44,10 +44,10 @@ for a in $ARCHITECTURES; do
 	mv ./"$arch"/*.AppImage* ./
 done
 
-cd ..
-mv ./tmp/*.AppImage* ./
-
 # Create artifacts for direct links
 for a in $ARCHITECTURES; do
 	cp ./*"$a"*.AppImage ./busybox-"$a"-static
 done
+
+cd ..
+mv ./tmp/*.AppImage* ./

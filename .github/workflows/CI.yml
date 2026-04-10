@@ -23,7 +23,7 @@ jobs:
 
         chmod a+x ./alpine-builder.sh
         ./alpine-builder.sh
-        mkdir dist
+        mkdir -p dist
         mv *AppImage* dist/
         mv *busybox-*-static dist/
 
@@ -31,7 +31,7 @@ jobs:
 
         chmod a+x ./debian-builder.sh
         ./debian-builder.sh
-        mkdir dist
+        mkdir -p dist
         #mv *AppImage* dist/
         mv *busybox-*-static dist/
 

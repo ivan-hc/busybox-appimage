@@ -115,7 +115,7 @@ jobs:
           title: busybox-static
           automatic_release_tag: busybox-static
           prerelease: true
-          draft: true
+          draft: false
           files: |
             dist/**/*
           repo_token: ${{ secrets.GITHUB_TOKEN }}

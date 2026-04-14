@@ -1,0 +1,122 @@
+name: Build BusyBox (static multi-arch Alpine)
+
+on:
+  schedule:
+    - cron: "0 21 27 * *"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        include:
+          - arch: x86_64
+            platform: linux/amd64
+
+          - arch: i686
+            platform: linux/386
+
+          - arch: aarch64
+            platform: linux/arm64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Enable QEMU
+        uses: docker/setup-qemu-action@v4
+
+      - name: Build BusyBox
+        run: |
+          docker run --rm \
+            --platform=${{ matrix.platform }} \
+            -v $PWD:/work \
+            -w /work \
+            alpine:3.20 sh -c "
+              set -eux
+
+              apk add --no-cache \
+                build-base \
+                wget \
+                bzip2 \
+                xz \
+                zstd \
+                linux-headers
+
+              #BUSYBOX_VERSION=$(curl -Ls https://gitlab.alpinelinux.org/alpine/aports/-/raw/master/main/busybox/APKBUILD | grep "^pkgver=" | grep -Eo "[0-9].*[0-9]$")
+              BUSYBOX_VERSION=1.36.1
+
+              wget https://busybox.net/downloads/busybox-\${BUSYBOX_VERSION}.tar.bz2
+              tar xf busybox-\${BUSYBOX_VERSION}.tar.bz2
+              cd busybox-\${BUSYBOX_VERSION}
+
+              # ---- base config ----
+              make defconfig
+
+              # ---- static binary ----
+              sed -i 's/# CONFIG_STATIC is not set/CONFIG_STATIC=y/' .config
+
+              # ---- applet install mode (avoid prompt) ----
+              sed -i 's/# CONFIG_INSTALL_APPLET_SYMLINKS is not set/CONFIG_INSTALL_APPLET_SYMLINKS=y/' .config
+
+              # ---- .deb support ----
+              sed -i 's/# CONFIG_AR is not set/CONFIG_AR=y/' .config
+              sed -i 's/# CONFIG_FEATURE_AR_LONG_FILENAMES is not set/CONFIG_FEATURE_AR_LONG_FILENAMES=y/' .config
+
+              sed -i 's/# CONFIG_TAR is not set/CONFIG_TAR=y/' .config
+              sed -i 's/# CONFIG_FEATURE_TAR_AUTODETECT is not set/CONFIG_FEATURE_TAR_AUTODETECT=y/' .config
+
+              sed -i 's/# CONFIG_GZIP is not set/CONFIG_GZIP=y/' .config
+              sed -i 's/# CONFIG_BZIP2 is not set/CONFIG_BZIP2=y/' .config
+              sed -i 's/# CONFIG_XZ is not set/CONFIG_XZ=y/' .config
+              sed -i 's/# CONFIG_ZSTD is not set/CONFIG_ZSTD=y/' .config
+
+              # ---- safe shell improvements ----
+              sed -i 's/# CONFIG_FEATURE_SH_STANDALONE is not set/CONFIG_FEATURE_SH_STANDALONE=y/' .config
+              sed -i 's/# CONFIG_FEATURE_SH_NOFORK is not set/CONFIG_FEATURE_SH_NOFORK=y/' .config
+
+              # ---- IMPORTANT FIX (no olddefconfig!) ----
+              yes \"\" | make oldconfig
+
+              # ---- build ----
+              make -j\$(nproc)
+
+              strip busybox || true
+
+              cp busybox /work/busybox-${{ matrix.arch }}
+            "
+
+      - name: Verify
+        run: |
+          ./busybox-${{ matrix.arch }} --list | grep ar || true
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4.4.0
+        with:
+          name: busybox-${{ matrix.arch }}
+          path: busybox-${{ matrix.arch }}
+
+  release:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v3
+        with:
+          name: busybox-static
+          tag_name: busybox-static
+          prerelease: false
+          draft: true
+          generate_release_notes: false
+          make_latest: false
+          files: dist/**/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -17,22 +17,13 @@ jobs:
     - name: build
       if: always()
       run: |
-        sudo apt update && sudo apt install desktop-file-utils
+        #sudo apt update && sudo apt install desktop-file-utils
         sudo sysctl -w kernel.apparmor_restrict_unprivileged_unconfined=0
         sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
-
-        chmod a+x ./alpine-builder.sh
-        ./alpine-builder.sh
-        mkdir -p dist
+        chmod a+x ./builder.sh
+        ./builder.sh
+        mkdir dist
         mv *AppImage* dist/
-        mv *busybox-*-static dist/
-
-        rm -Rf ./tmp
-
-        chmod a+x ./debian-builder.sh
-        ./debian-builder.sh
-        mkdir -p dist
-        #mv *AppImage* dist/
         mv *busybox-*-static dist/
 
     - name: Upload artifact

@@ -30,20 +30,10 @@ jobs:
 
       - name: Build BusyBox
         run: |
-          docker run --rm \
-            --platform=${{ matrix.platform }} \
-            -v $PWD:/work \
-            -w /work \
-            alpine:3.20 sh -c "
+          docker run --rm --platform=${{ matrix.platform }} -v $PWD:/work -w /work alpine:3.20 sh -c "
               set -eux
 
-              apk add --no-cache \
-                build-base \
-                wget \
-                bzip2 \
-                xz \
-                zstd \
-                linux-headers
+              apk add --no-cache build-base wget bzip2 xz zstd linux-headers
 
               #BUSYBOX_VERSION=$(curl -Ls https://gitlab.alpinelinux.org/alpine/aports/-/raw/master/main/busybox/APKBUILD | grep "^pkgver=" | grep -Eo "[0-9].*[0-9]$")
               BUSYBOX_VERSION=1.36.1
